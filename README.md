@@ -1,2 +1,4 @@
 # pyowencloud
-Клиент к REST API облака api.owencloud.ru
+Неофициальный клиент к REST API облака https://owencloud.ru
+(Официального не нашёл)
+
