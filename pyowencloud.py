@@ -31,6 +31,12 @@ class OwenClient:
         self.headers = {'Content-Type': 'application/json'}
         self.token = ''
 
+    def disconnect(self):
+        try:
+            self.session.close()
+        except Exception:
+            pass
+
     def assert_error(self, ret):
         try:
             ret.raise_for_status()
