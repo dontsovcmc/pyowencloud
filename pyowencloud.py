@@ -10,6 +10,10 @@ class OwenException(Exception):
     pass
 
 
+class NoDataException(Exception):
+    pass
+
+
 def dt(timestamp):
     if isinstance(timestamp, datetime):
         return timestamp.strftime('%Y-%m-%d %H:%M:%S')
@@ -44,7 +48,7 @@ class OwenClient:
         self.headers.update({'Authorization': 'Bearer ' + r.json()['token']})
         return r.json()
 
-    def devices(self, number_filter=[]):
+    def devices(self, name_filter=[]):
         """
         Список доступных приборов определяется компанией, к которой принадлежит пользователь.
         Дополнительно по каждому прибору передается мета-информация, такая как пользовательское
@@ -59,8 +63,8 @@ class OwenClient:
         :return: массив идентификаторов приборов. Будет выведена инфа только по ним.
         """
         params = {}
-        if number_filter:
-            params.update({'filter': number_filter})
+        if name_filter:
+            params.update({'filter': name_filter})
 
         r = self.session.post(self.root + '/v1/device/index',
                               headers=self.headers,
@@ -105,12 +109,16 @@ class OwenClient:
         self.assert_error(r)
         return r.json()
 
+    def parameters(self, device_id, name_filter):
+        dev = self.device(device_id)
+        return [p['id'] for p in dev['parameters'] if name_filter in p['name']]
+
     def last_data(self, ids):
         """
         Возвращает последние полученные данные по переданному списку параметров.
         Для обновления актуальных значений в клиенте настоятельно рекомендуется
         использовать именно этод метод.
-        :param ids:
+        :param ids: список параметров
         :return:
         Возвращается json-массив объектов с полями:
         id - идентификатор параметра
@@ -126,6 +134,27 @@ class OwenClient:
                               json={'ids': ids})
         self.assert_error(r)
         return r.json()
+
+    def last_value_info(self, id):
+        info = self.last_data([id])
+        return info[0]['values'][0]
+
+    def last_value(self, id, previous_timestamp=None):
+        """
+        Возвращает последнее значение параметра.
+        Если указать previous_timestamp, то вернет если есть более позднее значение.
+        :param id: id параметра
+        :param previous_timestamp: если нет нового значения, то NoNewException
+        :return:
+        """
+        info = self.last_value_info(id)
+
+        if info['e']:
+            raise OwenException(info['e'])
+        else:
+            if previous_timestamp and info['d'] <= previous_timestamp:
+                raise NoDataException()
+            return float(info['v'])
 
     def data(self, ids, start_timestamp, end_timestamp, step=1):
         """
