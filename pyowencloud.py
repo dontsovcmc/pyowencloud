@@ -139,7 +139,7 @@ class OwenClient:
         info = self.last_data([id])
         return info[0]['values'][0]
 
-    def last_value(self, id, previous_timestamp=None):
+    def last_value_with_dt(self, id, previous_timestamp=None):
         """
         Возвращает последнее значение параметра.
         Если указать previous_timestamp, то вернет если есть более позднее значение.
@@ -154,7 +154,7 @@ class OwenClient:
         else:
             if previous_timestamp and info['d'] <= previous_timestamp:
                 raise NoDataException()
-            return float(info['v'])
+            return float(info['v']), info['d']
 
     def data(self, ids, start_timestamp, end_timestamp, step=1):
         """
