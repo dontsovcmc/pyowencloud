@@ -7,7 +7,7 @@ from __future__ import print_function
 from setuptools import setup
 
 VERSION_MAJOR = 0
-VERSION_MINOR = 1
+VERSION_MINOR = 3
 
 ver = '%d.%d' % (VERSION_MAJOR, VERSION_MINOR)
 
